@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, Response
+import csv
 
 app = Flask(__name__)
 
@@ -11,28 +12,22 @@ def portfolio_home():
 @app.route('/submit_form', methods=['POST', 'GET'])
 def submit_form():
     if request.method == 'POST':
-        data = request.form.to_dict()
-        print(data)
-        return render_template('./thank-you.html')
+        try:
+            data = request.form.to_dict()
+            write_to_csv(data)
+            return Response(status=204)
+        except:
+            return 'Error saving to database.'
     else:
-        return 'error'
+        return 'Error'
 
 
-# @app.route('/<string: page_name>')
-# def html_page(page_name):
-#     return render_template(page_name)
-
-
-# @app.route("/<username>/<int:id>")
-# def user(username=None, id=None):
-#     return render_template('./index.html', name=username.title(), id_num=id)
-
-
-# @app.route("/blog")
-# def blog():
-#     return "<p>This is a blank blog.</p>"
-
-
-# @app.route("/about")
-# def about():
-#     return render_template('./about.html')
+def write_to_csv(data):
+    with open('./database.csv', 'a', newline= '') as db:
+        name = data["name"]
+        email = data["email"]
+        subject = data["subject"]
+        message = data["message"]
+        csv_writer = csv.writer(db, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        csv_writer.writerow([name, email, subject, message])
+        
